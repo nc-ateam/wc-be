@@ -1,17 +1,14 @@
 const https = require("https");
 
-let URL = "https://web-crawler-test2.herokuapp.com";
-let count=0
-let pathsToSearch= []
-let lastTier=''
-let searchedTerms=[]
+let staticURL = "https://web-crawler-test2.herokuapp.com";
+let count = 0;
+let pathsToSearch = [];
+let lastTier = "";
+let searchedTerms = [];
 
-
-const recursFinder = (URL) =>{
+const recursFinder = (URL, name) => {
   https
-  .get(
-    URL,
-    response => {
+    .get(URL, response => {
       let data = "";
       response.on("data", information => {
         data += information;
@@ -27,45 +24,36 @@ const recursFinder = (URL) =>{
           })
           .map(item => {
             let res = item.split(">");
-            return {pathNames : res[0]};
+            return { pathName: res[0] };
           });
-        
-        pathsToSearch = allHtml
-        
-        
-        for (let i=0; i<pathsToSearch.length; i++){
-          console.log(pathsToSearch[i].pathNames, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-          // searchedTerms.push(pathsToSearch[i].pathNames);
-          // console.log(">>>>>>>>>>>>>>>>>>>>>>.",searchedTerms)
-          // searchedTerms.forEach(path => {
-          //   if (path === pathsToSearch[i].pathNames){
-          //     i++
-          //   }
-          // })
-          console.log(pathsToSearch)
+        let htmlToAdd = allHtml.filter(item => {
+          return !searchedTerms.includes(item);
+        });
+        pathsToSearch = pathsToSearch.concat(htmlToAdd);
 
-          if(response.statusCode === 404) {
-            console.log(`here`)
-            return recursFinder(`${URL}/public/${searchedTerms[0][i+1].pathNames}`);
+        pathsToSearch.forEach((urlToSearch, index) => {
+          if (searchedTerms.length === 0) {
+            searchedTerms.push(urlToSearch);
+            console.log("boop");
+            return recursFinder(`${staticURL}/public/${urlToSearch.pathName}`);
           }
-          lastTier = pathsToSearch[i].pathNames
-         return recursFinder(`${URL}/public/${pathsToSearch[i].pathNames}`)
-        }
-
-        if (allHtml.length === 0) {
-          console.log(lastTier);
-          return recursFinder(`${URL}/public/${searchedTerms[0]}`);
-        }
-        
-        console.log(pathsToSearch)
+          for (let i = 0; i < searchedTerms.length; i++) {
+            if (!searchedTerms.includes(urlToSearch.pathName)) {
+              searchedTerms.push(urlToSearch);
+              return recursFinder(
+                `${staticURL}/public/${urlToSearch.pathName}`
+              );
+            }
+            i++;
+          }
+        });
       });
-    }
-  )
-  .on("error", err => {
-    console.log("Error: " + err.message);
-  });}
+    })
+    .on("error", err => {
+      console.log("Error: " + err.message);
+    });
+};
 
+recursFinder(staticURL);
 
-  recursFinder(URL)
-
-module.exports={recursFinder}
+module.exports = { recursFinder };
