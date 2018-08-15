@@ -1,15 +1,19 @@
 const https = require("https");
 
-const recursFinder = (URL) =>{https
+let URL = "https://web-crawler-test2.herokuapp.com";
+let count=0
+let pathsToSearch= []
+
+
+const recursFinder = (URL) =>{
+  https
   .get(
-    "https://web-crawler-test2.herokuapp.com",
+    URL,
     response => {
       let data = "";
-
       response.on("data", information => {
         data += information;
       });
-
       response.on("end", () => {
         dataArr = data.split("public/");
         let html = ".html>";
@@ -21,12 +25,18 @@ const recursFinder = (URL) =>{https
           })
           .map(item => {
             let res = item.split(">");
-            return res[0];
+            return {pathNames : res[0]};
           });
-        console.log(allHtml)
+        pathsToSearch = allHtml
+        if(allHtml.length===0){count++}
+        let firstSearch = false;
+        console.log(pathsToSearch)
       });
     }
   )
   .on("error", err => {
     console.log("Error: " + err.message);
   });}
+
+
+  recursFinder(URL)
